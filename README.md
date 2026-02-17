@@ -1,2 +1,2 @@
-# Dissertation
-Reconstructing Ocean Heat Content Anomalies with Random Forest
+# MSc-Dissertation
+Collaboration project of University of Exeter and MET office
