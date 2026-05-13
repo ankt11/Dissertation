@@ -1,174 +1,71 @@
-# MSc Dissertation  
-## Reconstructing Ocean Heat Content Anomalies with Random Forest 
+# Reconstructing Ocean Heat Content Anomalies with Random Forests
+
+MSc Applied Data Science and Statistics, University of Exeter (2025)  
+Supervised collaboration with the UK Met Office
+
+[Full project walkthrough](eclectic-phoenix-32ab7d.netlify.app)
 
 ---
 
-## Table of Contents
+## Overview
 
-- [Project Overview](#-project-overview)
-- [Research Motivation](#-research-motivation)
-- [Research Question](#-research-question)
-- [Technologies Used](#-technologies-used)
-- [Methodological Approach](#-methodological-approach)
-- [How the Project Developed](#-how-the-project-developed)
-- [Challenges & Limitations](#-challenges--limitations)
-- [Problem Addressed](#-problem-addressed)
-- [Intended Use](#-intended-use)
-- [Key Outputs](#-key-outputs)
-- [Credits](#-credits)
+This project applies Random Forest regression to reconstruct detrended, de-seasonalised ocean heat content (OHC) anomalies from sparse in-situ observations which is a core challenge in historical climate monitoring. It was developed as part of the ME4OH (Mapping Evaluation for Ocean Heat) intercomparison initiative using synthetic profile data from the OFAM3 ocean model.
+
+Two modelling strategies were compared: a **Baseline RF** that predicts anomalies directly, and a **Two-Step RF** that separates seasonal and residual components before reconstruction.
 
 ---
 
-## Project Overview
+## Key Results
 
-This dissertation investigates whether machine learning methods can reconstruct **detrended and de-seasoned ocean heat content (OHC) anomalies** under sparse observational conditions.
+The Baseline RF outperformed the Two-Step variant across all metrics on the held-out test set (20% split):
 
-The work follows the Experiment A protocol of the MapEval4OceanHeat (ME4OH) initiative.
+| Model | RMSE | MAE | Bias | R² |
+|---|---|---|---|---|
+| Baseline RF | 0.463 | 0.236 | 0.001 | 0.656 |
+| Two-Step RF | 0.511 | 0.271 | 0.000 | 0.583 |
 
-The project was conducted in collaboration with the UK Met Office as part of the MSc in Applied Data Science and Statistics at the University of Exeter.
-
-All modelling, spatial processing, and evaluation were implemented entirely in **R**.
-
-
----
-
-## Research Motivation
-
-Monitoring ocean heat content is critical because:
-
-- The ocean absorbs over 90% of excess heat from anthropogenic climate change.
-- Ocean heat is a key indicator of global warming.
-- Historical ocean observations are spatially sparse, especially pre-Argo.
-
-Traditional mapping approaches rely heavily on statistical interpolation and physical assumptions. This project explores whether **data-driven models** can offer complementary reconstruction capability — particularly in data-sparse regions.
+Findings: Both models captured basin-scale anomaly structure, but reconstruction skill was constrained by observational sampling density. The Two-Step decomposition introduced spatial artefacts due to variance misallocation which shows when decomposition helps versus hinders in geospatial ML.
 
 ---
 
-## Research Question
+## Approach
 
-> Can machine learning methods reliably reconstruct detrended ocean heat content anomalies under realistic sparse-observation scenarios?
+Features were engineered from profile metadata: latitude, longitude, decimal year, and annual sinusoidal harmonics to represent spatio-temporal structure. The target variable, Layer 1 OHC anomalies (0–286.6 m depth), was used directly as detrended and de-seasonalised under Experiment A.
 
----
+The two-step framework separated seasonal structure (T₀ + climatology) from residual anomaly mapping, with the intent of reducing model complexity at each stage. Validation used held-out test profiles plus spatial and temporal diagnostics across Pre-Argo (1993–2004) and Argo (2005–2014) eras.
 
-## Technologies Used
-
-### Programming
-- **R** – End-to-end modelling, spatial analysis, validation, and visualisation.
-
-### Key Packages
-- `ranger` – Efficient Random Forest implementation  
-- `terra` – Raster and gridded data processing  
-- `sf` – Spatial vector data handling  
-- `ncdf4` / `terra` – NetCDF data manipulation  
-- `ggplot2` – Visualisation  
-
-### Why These Tools?
-- **Random Forest** handles nonlinear relationships without strong parametric assumptions.
-- **R ecosystem** supports reproducible spatial statistics workflows.
-- **NetCDF compatibility** is essential for working with climate model outputs.
+Full-field reconstructions were produced over the North Atlantic (0°–60°N, 280°–360°E) on a 0.5° grid and compared against withheld ME4OH model truth fields.
 
 ---
 
-## Methodological Approach
+## Repository
 
-### Data Preparation
+```
+├── train_rf_models.R       # Trains Baseline and Two-Step RF models
+├── rf_fullfield.R          # Generates full-field reconstructions over the North Atlantic
+└── README.md
+```
 
-- Used ME4OH “model truth” ocean heat content fields.
-- Applied realistic sampling masks to simulate historical observation sparsity.
-- Target variable: detrended, de-seasoned OHC anomalies.
-
-### Two-Step Random Forest Framework
-
-**Step 1 — Seasonal Structure (T₀ + Climatology)**  
-Modelled large-scale mean and seasonal structure.
-
-**Step 2 — Residual Mapping**  
-Modelled spatial residual anomalies after removing seasonal effects.
-
-This decomposition was chosen to:
-
-- Reduce model complexity  
-- Separate structured seasonal behaviour from anomaly dynamics  
-- Diagnose where spatial artefacts emerged  
-
-### Validation Strategy
-
-- Compared predictions against known model truth.
-- Evaluated residual maps and spatial error patterns.
-- Analysed performance in sparse vs dense regions.
+*Additional scripts and outputs will be added as the repository develops.*
 
 ---
 
-## How the Project Developed
+## Tools
 
-This project was developed as part of a supervised collaboration with the UK Met Office and University of Exeter, contributing to the broader ME4OH intercomparison effort.
-
-The goal was to:
-
-- Diagnose how ML behaves in physically constrained geospatial systems.
-- Evaluate robustness under controlled data sparsity.
-- Understand limitations of purely data-driven reconstructions.
+R · `ranger` · `terra` · `sf` · `ncdf4` · `ggplot2`
 
 ---
 
-## Challenges & Limitations
+## Limitations
 
-### Data Sparsity
-Sparse regions led to:
-
-- Spatial artefacts  
-- Over-smoothed reconstructions  
-- Reduced reliability in poorly observed basins  
-
-### Non-Physical Learning
-Machine learning models:
-
-- Do not inherently respect conservation laws  
-- May introduce physically implausible structures  
-
-### Validation Complexity
-Because the target variable was already anomalies, care was required to avoid mis-specification or double-detrending.
-
----
-
-## Problem Addressed
-
-> How can we reliably reconstruct historical ocean heat content when direct observations are limited?
-
-Reliable reconstructions are critical for:
-
-- Climate monitoring  
-- Attribution studies  
-- Policy-relevant climate indicators  
-
----
-
-## Intended Use
-
-This repository is intended to:
-
-- Demonstrate a reproducible ML pipeline for spatial climate reconstruction.
-- Provide insight into strengths and weaknesses of Random Forest in geospatial anomaly mapping.
-- Serve as a technical portfolio piece for roles in:
-  - Climate analytics  
-  - Environmental modelling  
-  - Geospatial machine learning  
-
----
-
-## Key Outputs
-
-- Global maps of reconstructed OHC anomalies  
-- Climatology and baseline structure diagnostics  
-- Residual spatial error visualisations  
-- NetCDF prediction outputs for scientific comparison  
+Reconstruction quality degrades in data-sparse regions regardless of modelling approach. Spatial error is driven more by observation density than model choice. Random Forest does not enforce physical conservation laws, which can introduce implausible structures in poorly sampled basins.
 
 ---
 
 ## Credits
 
-- UK Met Office (Supervisory Collaboration)  
-- University of Exeter (MSc Programme)  
-- Mapping Evaluation For Ocean Heat (ME4OH) evaluation framework  
+Supervisors: Donata Giglio, James Salter, Matt Palmer  
+UK Met Office · University of Exeter · ME4OH initiative
 
 ---
+
